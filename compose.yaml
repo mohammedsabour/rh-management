@@ -1,0 +1,114 @@
+name: grh
+
+services:
+
+  # ==========================================================
+  # Laravel / PHP-FPM
+  # ==========================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+
+    container_name: grh-app
+
+    restart: unless-stopped
+
+    working_dir: /var/www/html
+
+    env_file:
+      - .env
+
+    volumes:
+      # Persistance des fichiers uploadés par Filament/Laravel
+      - grh_storage:/var/www/html/storage
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - grh-network
+
+
+  # ==========================================================
+  # Nginx
+  # ==========================================================
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nginx
+
+    container_name: grh-nginx
+
+    restart: unless-stopped
+
+    ports:
+      - "8002:80"
+
+    volumes:
+      # Nginx doit pouvoir lire les fichiers uploadés
+      - grh_storage:/var/www/html/storage:ro
+
+    depends_on:
+      - app
+
+    networks:
+      - grh-network
+
+
+  # ==========================================================
+  # PostgreSQL
+  # ==========================================================
+  postgres:
+    image: postgres:17-alpine
+
+    container_name: grh-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Africa/Algiers
+
+    volumes:
+      # Base PostgreSQL persistante
+      - grh_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - grh-network
+
+
+# ============================================================
+# Réseau isolé GRH
+# ============================================================
+networks:
+  grh-network:
+    driver: bridge
+
+
+# ============================================================
+# Volumes persistants
+# ============================================================
+volumes:
+
+  # PostgreSQL
+  grh_postgres_data:
+
+  # Documents/images uploadés dans Laravel/Filament
+  grh_storage:
