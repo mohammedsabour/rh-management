@@ -14,14 +14,17 @@ class AbsenceForm
         return $schema
             ->components([
                 DatePicker::make('date_absence')
+                
                     ->required(),
                 Select::make('type')
                     ->options(['maladie' => 'Maladie', 'congé' => 'Congé', 'personnel' => 'Personnel'])
                     ->default('maladie')
                     ->required(),
-                TextInput::make('employe_id')
-                    ->required()
-                    ->numeric(),
+                Select::make('employe_id')
+                    ->relationship('employe', 'nom')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Select::make('justificatif')
                     ->options(['oui' => 'Oui', 'non' => 'Non'])
                     ->default('non')
