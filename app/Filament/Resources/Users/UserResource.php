@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Filament\DemoIconAlias;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
@@ -11,6 +12,7 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentIcon;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -21,12 +23,13 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
-
+    public static function getNavigationIcon(): string | BackedEnum | null
+    {
+        return FilamentIcon::resolve(DemoIconAlias::RESOURCES_HR_EMPLOYEES_NAVIGATION) ?? Heroicon::OutlinedIdentification;
+    }
     protected static string|UnitEnum|null $navigationGroup = 'HR';
     protected static ?string $navigationLabel = 'Employés'; 
-    protected static ?string $modelLabel = 'Employés'; 
-
+    protected static ?string $modelLabel = 'Employé'; 
 
     protected static ?int $navigationSort = 1; 
 
