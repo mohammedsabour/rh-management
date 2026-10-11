@@ -71,7 +71,7 @@ class UserForm
                     // ───────────── État civil ─────────────
                     Tabs\Tab::make('État civil')
                         ->icon('heroicon-o-user')
-                        ->columns(2)
+                        ->columns(3)
                         ->schema([
                             FileUpload::make('photo')
                                 ->label('Photo')
@@ -82,29 +82,44 @@ class UserForm
                                 ->visibility('public')
                                 ->directory('photos')
                                 ->maxSize(2048)
-                                ->columnSpanFull(),
+                                ->columnSpan(2),
+                            TextInput::make('nin')
+                                ->label('Numéro d\'identification national (NIN)')
+                                ->placeholder('10 988 0554 00345 0000')
+                                ->regex('/^\d{18}$/')
+                                ->validationMessages(['regex' => 'Le NIN doit contenir 18 chiffres.'])
+                                ->maxLength(18)
+                                ->required(),
                             TextInput::make('nom')
                                 ->label('Nom')
-                                ->required()
-                                ->maxLength(255),
+                                ->placeholder('Entrez le nom')
+                                ->maxLength(255)
+                                ->required(),
                             TextInput::make('prenom')
                                 ->label('Prénom')
+                                ->placeholder('Entrez le prénom')
                                 ->required()
-                                ->maxLength(255),
-                            DatePicker::make('date_naissance')
-                                ->label('Date de naissance')
-                                ->maxDate(now()),
+                                ->maxLength(255)
+                                ->required(),
                             Select::make('sexe')
                                 ->label('Sexe')
                                 ->options(['masculin' => 'Masculin', 'feminin' => 'Féminin'])
+                                ->required()
                                 ->live(),
+                            DatePicker::make('date_naissance')
+                                ->label('Date de naissance')
+                                ->maxDate(now())
+                                ->required(),
                             Select::make('wilaya_naissance')
                                 ->label('Wilaya de naissance')
                                 ->options(self::wilayas())
-                                ->searchable(),
+                                ->searchable()
+                                ->required(),
                             TextInput::make('commune_naissance')
                                 ->label('Commune de naissance')
-                                ->maxLength(255),
+                                ->placeholder('Entrez la commune de naissance')
+                                ->maxLength(255)
+                                ->required(),
                             Select::make('situation_familiale')
                                 ->label('Situation familiale')
                                 ->options([
@@ -113,25 +128,27 @@ class UserForm
                                     'divorce' => 'Divorcé(e)',
                                     'veuf' => 'Veuf / Veuve',
                                 ])
+                                ->default('celibataire')
+                                ->required()
                                 ->live(),
-                            TextInput::make('nin')
-                                ->label('Numéro d\'identification national (NIN)')
-                                ->regex('/^\d{18}$/')
-                                ->validationMessages(['regex' => 'Le NIN doit contenir 18 chiffres.'])
-                                ->maxLength(18),
+                            
                             TextInput::make('nombre_enfants')
                                 ->label('Nombre d\'enfants')
+                                ->placeholder('Entrez le nombre d\'enfants')
                                 ->numeric()
                                 ->minValue(0)
                                 ->default(0)
-                                ->live(onBlur: true),
+                                ->live(onBlur: true)
+                                ->visible(fn ($get) => $get('situation_familiale') !== 'celibataire'),
                             TextInput::make('nombre_enfants_a_charge')
                                 ->label('Enfants à charge')
+                                ->placeholder('Entrez le nombre d\'enfants à charge')
                                 ->numeric()
                                 ->minValue(0)
                                 ->default(0)
                                 ->maxValue(fn ($get) => (int) $get('nombre_enfants'))
-                                ->helperText('Ne peut pas dépasser le nombre d\'enfants.'),
+                                ->helperText('Ne peut pas dépasser le nombre d\'enfants.')
+                                ->visible(fn ($get) => $get('situation_familiale') !== 'celibataire'),
                             Select::make('situation_service_national')
                                 ->label('Situation au service national')
                                 ->options([
@@ -140,49 +157,61 @@ class UserForm
                                     'exempte' => 'Exempté',
                                     'sursitaire' => 'Sursitaire',
                                 ])
+                                ->default('degage')
                                 ->visible(fn ($get) => $get('sexe') === 'masculin'),
                             TextInput::make('telephone')
                                 ->label('Téléphone')
+                                ->placeholder('06 12 34 56 78')
                                 ->tel()
-                                ->maxLength(20),
+                                ->maxLength(20)
+                                ->required(),
                             TextInput::make('email_personnel')
                                 ->label('Email personnel')
+                                ->placeholder('entrez@votre-email.com')
                                 ->email()
                                 ->maxLength(255),
                             TextInput::make('adresse')
                                 ->label('Adresse de résidence')
+                                ->placeholder('Entrez votre adresse de résidence')
                                 ->maxLength(255)
-                                ->columnSpanFull(),
+                                ->columnSpan(2)
+                                ->required(),
                             Select::make('wilaya_residence')
                                 ->label('Wilaya de résidence')
+                                ->placeholder('Sélectionnez une wilaya')
                                 ->options(self::wilayas())
-                                ->searchable(),
+                                ->searchable()
+                                ->required(),
                             TextInput::make('commune_residence')
                                 ->label('Commune de résidence')
-                                ->maxLength(255),
+                                ->placeholder('Entrez la commune de résidence')
+                                ->maxLength(255)
+                                ->required(),
                             Section::make('Pièces du dossier')
                                 ->description('Formats acceptés : PDF, JPG, PNG (5 Mo maximum par fichier).')
                                 ->columnSpanFull()
                                 ->schema([
-                                    self::documentsRepeater('documents_identite', 'piece_identite', 2)
-                                        ->helperText('Recto et verso si nécessaire.'),
+                                    self::documentsRepeater('documents_identite', 'piece_identite', 2),
                                     self::documentsRepeater('documents_naissance', 'extrait_naissance'),
                                     self::documentsRepeater('documents_residence', 'certificat_residence'),
                                     self::documentsRepeater('documents_familiale', 'fiche_familiale')
-                                        ->visible(fn ($get) => $get('situation_familiale') === 'marie'),
+                                        ->visible(fn ($get) => $get('situation_familiale') !== 'celibataire'),
                                 ]),
                         ]),
  
                     // ───────────── Emploi ─────────────
                     Tabs\Tab::make('Emploi')
                         ->icon('heroicon-o-briefcase')
-                        ->columns(2)
+                        ->columns(3)
                         ->schema([
                             DatePicker::make('date_embauche')
-                                ->label('Date d\'entrée'),
+                                ->label('Date d\'entrée')
+                                ->maxDate(now())
+                                ->required(),    
                             Select::make('type_contrat')
                                 ->label('Type de contrat')
-                                ->options(['CDI' => 'CDI', 'CDD' => 'CDD', 'CTA' => 'CTA (contrat de travail aidé)']),
+                                ->options(['CDI' => 'CDI', 'CDD' => 'CDD', 'CTA' => 'CTA (contrat de travail aidé)'])
+                                ->required(),
                             Select::make('departement_id')
                                 ->label('Département')
                                 ->relationship('departement', 'nom')
@@ -197,17 +226,24 @@ class UserForm
                                 ]),
                             TextInput::make('poste')
                                 ->label('Poste occupé')
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->placeholder('ex: Ingénieur, Comptable, etc.')
+                                ->required(),
                             TextInput::make('echelon')
                                 ->label('Échelon')
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->placeholder('ex: 1, 2, 3, etc.')
+                                ->required(),
                             TextInput::make('grade')
                                 ->label('Grade')
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->placeholder('ex: A, B, C, etc.')
+                                ->required(),
                             TextInput::make('classe')
                                 ->label('Classe')
-                                ->maxLength(255),
-                            // Affichage seul : le solde n'est pas dans $fillable, il ne change que par la logique des congés
+                                ->maxLength(255)
+                                ->placeholder('ex: 1, 2, 3, etc.')
+                                ->required(),
                             TextInput::make('jours_conges_restant')
                                 ->label('Jours de congés restants')
                                 ->numeric()
@@ -228,14 +264,18 @@ class UserForm
                         ->schema([
                             TextInput::make('numero_assurance_sociale')
                                 ->label('N° de sécurité sociale (CNAS)')
+                                ->placeholder('ex: 8024360011')
                                 ->regex('/^\d{10}$/')
                                 ->validationMessages(['regex' => 'Le numéro CNAS doit contenir 10 chiffres.'])
-                                ->maxLength(10),
+                                ->maxLength(10)
+                                ->required(),
                             TextInput::make('cle_cnas')
                                 ->label('Clé CNAS')
+                                ->placeholder('ex: 12')
                                 ->regex('/^\d{2}$/')
                                 ->validationMessages(['regex' => 'La clé doit contenir 2 chiffres.'])
-                                ->maxLength(2),
+                                ->maxLength(2)
+                                ->required(),
                             Toggle::make('conjoint_travaille')
                                 ->label('Le conjoint travaille')
                                 ->visible(fn ($get) => $get('situation_familiale') === 'marie'),
@@ -247,11 +287,13 @@ class UserForm
                                 ]),
                             TextInput::make('numero_compte')
                                 ->label('N° de compte (RIP / RIB)')
+                                ->placeholder('ex: 30003 01234 0001234567')
                                 ->regex('/^\d{20}$/')
                                 ->validationMessages(['regex' => 'Le RIP / RIB doit contenir 20 chiffres.'])
                                 ->maxLength(20),
                             TextInput::make('code_banque_agence')
                                 ->label('Code banque / agence')
+                                ->placeholder('ex: 30003')
                                 ->maxLength(255),
                         ]),
  
@@ -269,10 +311,13 @@ class UserForm
                                     'Bac+4' => 'Bac+4',
                                     'Bac+5' => 'Bac+5 (Master / Ingénieur)',
                                     'Doctorat' => 'Doctorat',
-                                ]),
+                                ])
+                                ->required(),
                             TextInput::make('dernier_diplome')
-                                ->label('Dernier diplôme obtenu (spécialité exacte)')
-                                ->maxLength(255),
+                                ->label('Dernier diplôme obtenu')
+                                ->placeholder('spécialité exacte')
+                                ->maxLength(255)
+                                ->required(),
                             Section::make('Pièces du dossier')
                                 ->columnSpanFull()
                                 ->schema([
@@ -287,17 +332,18 @@ class UserForm
                         ->schema([
                             TextInput::make('email')
                                 ->label('Email de connexion')
+                                ->placeholder('Entrez.votre@mail.com')
                                 ->email()
                                 ->required()
                                 ->unique(ignoreRecord: true)
                                 ->maxLength(255),
                             TextInput::make('password')
                                 ->label('Mot de passe')
+                                ->placeholder('Entrez un mot de passe')
                                 ->password()
                                 ->revealable()
                                 ->minLength(8)
                                 ->required(fn (string $operation) => $operation === 'create')
-                                // Le cast 'hashed' du modèle s'occupe du hachage : pas de Hash::make ici
                                 ->dehydrated(fn ($state) => filled($state))
                                 ->helperText('En modification, laissez vide pour conserver le mot de passe actuel.'),
                             Select::make('role')
