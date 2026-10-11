@@ -16,7 +16,7 @@ use BackedEnum;
 
 class RhDashboard extends BaseDashboard
 {
-    protected static string $routePath = 'hr';
+    protected static string $routePath = 'Dashboard';
 
     protected static ?string $title = 'HR Dashboard';
 

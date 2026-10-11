@@ -9,6 +9,9 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ActionGroup;
 use Filament\Tables\Table;
 
 class UsersTable
@@ -24,32 +27,34 @@ class UsersTable
                     ->circular()
                     ->size(40),
                 TextColumn::make('nom')
-                    ->searchable(),
-                TextColumn::make('prenom')
-                    ->searchable(),
-                TextColumn::make('email_personnel')
-                    ->searchable(),
+                    ->formatStateUsing(fn ($record) => "{$record->nom} {$record->prenom}")
+                    ->searchable(['nom', 'prenom'])
+                    ->sortable()
+                    ->weight(FontWeight::Medium),
                 TextColumn::make('telephone')
                     ->searchable(),
                 TextColumn::make('poste')
                     ->searchable(),
-                TextColumn::make('departement_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('date_embauche')
-                    ->date()
-                    ->sortable(),
+                TextColumn::make('departement.nom')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->placeholder('No department'),
                 TextColumn::make('role')
                     ->searchable(),
-                TextColumn::make('status')
-                    ->searchable(),
+                IconColumn::make('status')
+                    ->boolean()
+                    ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('departement')
+                    ->relationship('departement', 'nom'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
