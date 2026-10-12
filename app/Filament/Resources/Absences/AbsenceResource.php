@@ -19,7 +19,7 @@ class AbsenceResource extends Resource
 {
     protected static ?string $model = Absence::class;
 
-    protected static string|UnitEnum|null $navigationGroup = 'HR';
+    protected static string|UnitEnum|null $navigationGroup = 'Ressources Humaines';
     protected static ?int $navigationSort = 2; 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
