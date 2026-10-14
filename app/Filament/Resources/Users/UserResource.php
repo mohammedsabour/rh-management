@@ -27,7 +27,7 @@ class UserResource extends Resource
     {
         return FilamentIcon::resolve(DemoIconAlias::RESOURCES_HR_EMPLOYEES_NAVIGATION) ?? Heroicon::OutlinedIdentification;
     }
-    protected static string|UnitEnum|null $navigationGroup = 'HR';
+    protected static string|UnitEnum|null $navigationGroup = 'Ressources Humaines';
     protected static ?string $navigationLabel = 'Employés'; 
     protected static ?string $modelLabel = 'Employé'; 
 
