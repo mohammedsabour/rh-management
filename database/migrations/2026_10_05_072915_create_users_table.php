@@ -60,7 +60,7 @@ return new class extends Migration
             $table->unsignedInteger('joures_conges_restant')->default(18);
  
             // --- Compte applicatif ---
-            $table->string('status', 20)->default('actif');
+            $table->boolean('is_active')->default(true);
             $table->string('role', 20)->default('employe');               // admin | rh | employe
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

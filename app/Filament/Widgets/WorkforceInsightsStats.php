@@ -22,13 +22,13 @@ class WorkforceInsightsStats extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalActifs = $this->employes()->where('status', 'actif')->count();
+        $totalActifs = $this->employes()->where('is_active', 'true')->count();
         $totalEmployes = $this->employes()->count();
-        $totalInactifs = $this->employes()->where('status', 'inactif')->count();
+        $totalInactifs = $this->employes()->where('is_active', 'false')->count();
 
         // Ancienneté moyenne (en années) des employés actifs ayant une date d'entrée
         $ancienneteMoyenne = $this->employes()
-            ->where('status', 'actif')
+            ->where('is_active', 'true')
             ->whereNotNull('date_embauche')
             ->get(['id', 'date_embauche'])
             ->avg(fn (User $employe) => $employe->date_embauche->diffInMonths(now()) / 12);
@@ -41,7 +41,7 @@ class WorkforceInsightsStats extends BaseWidget
 
         // Contrats à durée déterminée (CDD + CTA) parmi les actifs
         $parContrat = $this->employes()
-            ->where('status', 'actif')
+            ->where('is_active', 'true')
             ->selectRaw('type_contrat, count(*) as total')
             ->groupBy('type_contrat')
             ->pluck('total', 'type_contrat');

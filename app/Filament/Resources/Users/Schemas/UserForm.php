@@ -355,11 +355,9 @@ class UserForm
                                 ])
                                 ->default('employe')
                                 ->required(),
-                            Select::make('status')
-                                ->label('Statut')
-                                ->options(['actif' => 'Actif', 'inactif' => 'Inactif'])
-                                ->default('actif')
-                                ->required(),
+                            Toggle::make('is_active')
+                                ->label('Compte actif')
+                                ->default(true),
                         ]),
                 ])
                 ->persistTabInQueryString()

@@ -42,7 +42,8 @@ class UsersTable
                     ->placeholder('No department'),
                 TextColumn::make('role')
                     ->searchable(),
-                IconColumn::make('status')
+                IconColumn::make('is_active')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
             ])

@@ -39,9 +39,8 @@ class UserInfolist
  
     private const ROLES = ['admin' => 'Administrateur', 'rh' => 'RH', 'employe' => 'Employé'];
  
-    private const STATUTS = ['actif' => 'Actif', 'inactif' => 'Inactif'];
+    private const STATUTS = ['true' => 'Actif', 'false' => 'Inactif'];
  
-    // Appelée par UserResource::infolist()
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -63,7 +62,8 @@ class UserInfolist
                             ->columnSpanFull(),
                         self::text('poste', 'Poste'),
                         self::text('departement.nom', 'Département'),
-                        self::badge('status', 'Statut', self::STATUTS),
+                        self::badge('is_active', 'Statut', self::STATUTS)
+                            ->state(fn ($record) => $record->is_active ? 'actif' : 'inactif'),
                     ])
                         ->columns(2)
                         ->columnSpan(['md' => 3]),
@@ -165,7 +165,8 @@ class UserInfolist
                         ->schema([
                             self::text('email', 'Email de connexion'),
                             self::badge('role', 'Rôle', self::ROLES),
-                            self::badge('status', 'Statut', self::STATUTS),
+                            self::badge('is_active', 'Statut', self::STATUTS)
+                                ->state(fn ($record) => $record->is_active ? 'actif' : 'inactif'),
                             self::text('created_at', 'Compte créé le')->dateTime('d/m/Y H:i'),
                         ]),
                 ])
