@@ -21,7 +21,7 @@ class EmployeesByDepartmentChart extends ChartWidget
     {
         // Employés actifs seulement ; retirez le where pour compter tout le monde
         $departements = Departement::query()
-            ->withCount(['users' => fn ($query) => $query->where('status', 'actif')])
+            ->withCount(['users' => fn ($query) => $query->where('is_active', 'true')])
             ->orderBy('nom')
             ->get();
 

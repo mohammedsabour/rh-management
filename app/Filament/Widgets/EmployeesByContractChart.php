@@ -19,7 +19,7 @@ class EmployeesByContractChart extends ChartWidget
     protected function getData(): array
     {
         $parContrat = User::query()
-            ->where('status', 'actif')
+            ->where('is_active', 'true')
             ->selectRaw('type_contrat, count(*) as total')
             ->groupBy('type_contrat')
             ->pluck('total', 'type_contrat');
