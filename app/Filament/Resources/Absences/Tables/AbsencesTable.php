@@ -16,12 +16,14 @@ class AbsencesTable
             ->columns([
                 TextColumn::make('date_absence')
                     ->date()
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('employe.nom')
+                    ->formatStateUsing(fn ($record) => "{$record->employe->nom} {$record->employe->prenom}")
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge(),
-                TextColumn::make('employe_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('justificatif')
                     ->badge(),
                 TextColumn::make('created_at')

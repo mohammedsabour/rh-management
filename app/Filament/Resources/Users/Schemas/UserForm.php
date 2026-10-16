@@ -355,9 +355,9 @@ class UserForm
                                 ])
                                 ->default('employe')
                                 ->required(),
-                            Select::make('status')
+                            Select::make('is_active')
                                 ->label('Statut')
-                                ->options(['actif' => 'Actif', 'inactif' => 'Inactif'])
+                                ->options(['true' => 'Actif', 'false' => 'Inactif'])
                                 ->default('actif')
                                 ->required(),
                         ]),

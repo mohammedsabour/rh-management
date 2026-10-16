@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
                 'nom' => 'Admin',
                 'prenom' => 'Admin',
                 'role' => 'admin',
-                'status' => 'actif',
+                'is_active' => 'true',
                 'departement_id' => $Informatique->id,
                 'password' => 'admin1234',
             ]

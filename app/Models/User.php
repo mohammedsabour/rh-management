@@ -68,7 +68,7 @@ class User extends Authenticatable implements FilamentUser, HasName
         'dernier_diplome',
  
         // Compte applicatif
-        'status',
+        'is_active',
         'role',
         'password',
     ];

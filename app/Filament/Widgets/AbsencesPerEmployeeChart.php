@@ -32,7 +32,7 @@ class AbsencesPerEmployeeChart extends ChartWidget
             ->map(fn ($groupe) => $groupe->count());
 
         $employes = User::query()
-            ->where('status', 'actif')
+            ->where('is_active', 'true')
             ->get(['id', 'date_embauche']);
 
         $valeurs = [];
