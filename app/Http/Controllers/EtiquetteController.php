@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Equipement;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class EtiquetteController extends Controller
 {
-     public function index(Request $request)
+    public function index(Request $request)
     {
+        Gate::authorize('viewAny', Equipement::class);
+
         $ids = collect(explode(',', (string) $request->query('ids')))
             ->map(fn ($id) => (int) $id)
             ->filter()

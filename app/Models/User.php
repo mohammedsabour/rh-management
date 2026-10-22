@@ -4,12 +4,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasName;
 use Filament\Panel;
@@ -17,7 +17,7 @@ use Filament\Panel;
 class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     public const SEXES = ['masculin', 'feminin'];
     public const SITUATIONS_FAMILIALES = ['celibataire', 'marie', 'divorce', 'veuf'];
@@ -69,7 +69,6 @@ class User extends Authenticatable implements FilamentUser, HasName
  
         // Compte applicatif
         'is_active',
-        'role',
         'password',
     ];
 
@@ -111,31 +110,25 @@ class User extends Authenticatable implements FilamentUser, HasName
         ];
     }
 
-    // Filament cherche un attribut "name" : ici il n'existe pas (nom / prenom)
     public function getFilamentName(): string
     {
         return trim("{$this->prenom} {$this->nom}");
     }
  
-    // Seuls l'admin et le RH accèdent au panneau Filament
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->isAdmin() || $this->isRh();
+        return $this->is_active
+            && ($this->hasRole('admin') || $this->getAllPermissions()->isNotEmpty());
     }
 
+    protected static function booted(): void
+    {
+        static::created(fn (self $user) => $user->assignRole('employe'));
+    }
+    
     public function departement()
     {
         return $this->belongsTo(Departement::class);
-    }
- 
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
- 
-    public function isRh()
-    {
-        return $this->role === 'rh';
     }
 
     public function documents()
