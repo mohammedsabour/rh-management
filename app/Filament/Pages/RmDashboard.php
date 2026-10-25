@@ -18,7 +18,7 @@ class RmDashboard extends BaseDashboard
     
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public function getWidgets(): array
     {

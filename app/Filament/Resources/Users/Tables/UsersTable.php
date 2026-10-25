@@ -40,8 +40,6 @@ class UsersTable
                     ->sortable()
                     ->toggleable()
                     ->placeholder('No department'),
-                TextColumn::make('role')
-                    ->searchable(),
                 IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()
@@ -63,4 +61,5 @@ class UsersTable
                 ]),
             ]);
     }
+    
 }

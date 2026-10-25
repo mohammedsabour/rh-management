@@ -23,7 +23,7 @@ class RhDashboard extends BaseDashboard
 
     protected static ?string $title = 'HR Dashboard';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationIcon(): string | BackedEnum | Htmlable | null
     {
