@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipement;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class InventaireComptableController extends Controller
 {
     public function __invoke()
     {
-        abort_unless(in_array(Auth::user()?->role, ['admin', 'rh'], true), 403);
-
+        Gate::authorize('viewAny', Equipement::class);
+        
         $equipements = Equipement::with(['categorie', 'emplacement'])
             ->orderBy('date_acquisition')
             ->orderBy('categorie_id')

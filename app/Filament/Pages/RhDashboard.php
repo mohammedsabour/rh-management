@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\DemoIconAlias;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Pages\Dashboard as BaseDashboard;
 use App\Filament\Widgets\WorkforceInsightsStats;
 use App\Filament\Widgets\EmployeesByDepartmentChart;
@@ -16,6 +17,8 @@ use BackedEnum;
 
 class RhDashboard extends BaseDashboard
 {
+    use HasPageShield;
+    
     protected static string $routePath = 'Dashboard';
 
     protected static ?string $title = 'HR Dashboard';

@@ -37,8 +37,6 @@ class UserInfolist
         'virement_bancaire' => 'Virement bancaire',
     ];
  
-    private const ROLES = ['admin' => 'Administrateur', 'rh' => 'RH', 'employe' => 'Employé'];
- 
     private const STATUTS = ['true' => 'Actif', 'false' => 'Inactif'];
  
     public static function configure(Schema $schema): Schema
@@ -164,7 +162,9 @@ class UserInfolist
                         ->columns(2)
                         ->schema([
                             self::text('email', 'Email de connexion'),
-                            self::badge('role', 'Rôle', self::ROLES),
+                            TextEntry::make('roles.name')
+                                ->label('Rôles')
+                                ->badge(),
                             self::badge('is_active', 'Statut', self::STATUTS)
                                 ->state(fn ($record) => $record->is_active ? 'actif' : 'inactif'),
                             self::text('created_at', 'Compte créé le')->dateTime('d/m/Y H:i'),

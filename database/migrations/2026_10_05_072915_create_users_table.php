@@ -61,7 +61,6 @@ return new class extends Migration
  
             // --- Compte applicatif ---
             $table->boolean('is_active')->default(true);
-            $table->string('role', 20)->default('employe');               // admin | rh | employe
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

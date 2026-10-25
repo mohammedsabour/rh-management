@@ -29,7 +29,7 @@ class UserResource extends Resource
     }
     protected static string|UnitEnum|null $navigationGroup = 'Ressources Humaines';
     protected static ?string $navigationLabel = 'Employés'; 
-    protected static ?string $modelLabel = 'Employé'; 
+    protected static ?string $modelLabel = 'Employé';
 
     protected static ?int $navigationSort = 1; 
 

@@ -21,7 +21,7 @@ class DepartementResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Ressources Humaines';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
-    protected static ?int $navigationSort = 3; 
+    protected static ?int $navigationSort = 4; 
 
     protected static ?string $recordTitleAttribute = 'Departements';
 

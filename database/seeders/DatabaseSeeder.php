@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Departement;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,33 +16,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RolesAndPermissionsSeeder::class);
 
         $noms = [
-            'Direction générale ',
+            'Direction générale',
             'Administration',
             'Ressources humaines',
             'Informatique',
             'Comptabilité',
         ];
- 
+
         foreach ($noms as $nom) {
             Departement::firstOrCreate(['nom' => $nom]);
         }
- 
-        // 2. Puis l'administrateur, lié au département "Administration"
-        $Informatique = Departement::where('nom', 'Informatique')->first();
- 
-        User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
+
+        // Administrateur
+        $informatique = Departement::where('nom', 'Informatique')->first();
+
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@example.com'],      
+            [                           
                 'nom' => 'Admin',
                 'prenom' => 'Admin',
-                'role' => 'admin',
-                'is_active' => 'true',
-                'departement_id' => $Informatique->id,
-                'password' => 'admin1234',
+                'is_active' => true,
+                'departement_id' => $informatique->id,
+                'password' => 'admin1234',    
             ]
         );
+        $admin->syncRoles(['admin', 'employe']);
     }
 }

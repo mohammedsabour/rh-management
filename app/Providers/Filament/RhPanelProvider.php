@@ -48,11 +48,16 @@ class RhPanelProvider extends PanelProvider
             ->pages([
 
             ])
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
+                    ->navigationGroup('Ressources Humaines')
+                    ->navigationLabel('rôles')
+                    ->navigationSort(2),
 
+            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                
             ])
             ->middleware([
                 EncryptCookies::class,

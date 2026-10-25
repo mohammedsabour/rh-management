@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -13,9 +15,18 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
 use App\Models\Document;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class UserForm
 {
+
+    private static function estAdmin(): bool
+        {
+            /** @var User|null $user */
+            $user = Auth::user();
+
+            return (bool) $user?->hasRole('admin');
+        }
     private const WILAYAS = [
         'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar',
         'Blida', 'Bouira', 'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret', 'Tizi Ouzou', 'Alger',
@@ -347,14 +358,15 @@ class UserForm
                                 ->dehydrated(fn ($state) => filled($state))
                                 ->helperText('En modification, laissez vide pour conserver le mot de passe actuel.'),
                             Select::make('role')
-                                ->label('Rôle')
-                                ->options([
-                                    'admin' => 'Administrateur',
-                                    'rh' => 'RH',
-                                    'employe' => 'Employé',
-                                ])
-                                ->default('employe')
-                                ->required(),
+                                ->label('Rôles')
+                                ->relationship('roles', 'name')
+                                ->multiple()
+                                ->preload()
+                                ->default(fn () => Role::where('name', 'employe')->pluck('id')->all())
+                                ->disabled(fn () => ! self::estAdmin())
+                                ->helperText(fn () => self::estAdmin()
+                                    ? "Tout employé garde « employe » ; ajoutez rh, comptable ou admin selon ses responsabilités."
+                                    : "Seul l'administrateur peut modifier les rôles."),
                             Toggle::make('is_active')
                                 ->label('Compte actif')
                                 ->default(true),
