@@ -57,7 +57,7 @@ return new class extends Migration
             $table->string('dernier_diplome')->nullable();
 
             // --- Bloc congé ---
-            $table->unsignedInteger('joures_conges_restant')->default(18);
+            $table->unsignedInteger('joures_conges_restant')->default(30);
  
             // --- Compte applicatif ---
             $table->boolean('is_active')->default(true);

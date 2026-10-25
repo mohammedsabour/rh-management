@@ -115,10 +115,15 @@ class User extends Authenticatable implements FilamentUser, HasName
         return trim("{$this->prenom} {$this->nom}");
     }
  
-    public function canAccessPanel(Panel $panel): bool
+    /* public function canAccessPanel(Panel $panel): bool
     {
         return $this->is_active
             && ($this->hasRole('admin') || $this->getAllPermissions()->isNotEmpty());
+    } */
+
+    public function canAccessPanel(\Filament\Panel $panel): bool
+    {
+        return (bool) $this->is_active;
     }
 
     protected static function booted(): void
@@ -139,5 +144,10 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function absences()
     {
         return $this->hasMany(Absence::class, 'employe_id');
+    }
+
+    public function demandeConges()
+    {
+        return $this->hasMany(DemandeConge::class, 'employe_id');
     }
 }
