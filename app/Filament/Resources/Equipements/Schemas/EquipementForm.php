@@ -119,13 +119,39 @@ class EquipementForm
                                 // un bien affecté change de statut via l'action « Restituer »
                                 ->disabled(fn (?Model $record) => $record?->statut === 'affecte')
                                 ->helperText('« Affecté » est géré par les actions Affecter / Restituer'),
+
                             Select::make('emplacement_id')
                                 ->label('Emplacement')
                                 ->relationship('emplacement', 'nom')
                                 ->getOptionLabelFromRecordUsing(fn (Emplacement $record) => $record->chemin_complet)
                                 ->searchable()
                                 ->preload()
-                                ->columnSpanFull(),
+                                ->columnSpanFull()
+                                ->createOptionForm([
+                                    TextInput::make('nom')
+                                        ->label('Nom')
+                                        ->placeholder('Ex. Bureau 12')
+                                        ->required()
+                                        ->maxLength(255),
+                                    TextInput::make('code')
+                                        ->label('Code')
+                                        ->helperText('Facultatif (ex. A-1-12)')
+                                        ->maxLength(20)
+                                        ->unique(ignoreRecord: true),
+                                    Select::make('type')
+                                        ->label('Type')
+                                        ->options(Emplacement::TYPES)
+                                        ->default('bureau')
+                                        ->required()
+                                        ->native(false),
+                                    Select::make('departement_id')
+                                        ->label('Département')
+                                        ->placeholder('Aucun')
+                                        ->relationship('departement', 'nom')
+                                        ->searchable()
+                                        ->preload()
+                                        ->columnSpanFull(),
+                                ]),
                         ]),
                     Tabs\Tab::make('Acquisition')
                         ->icon('heroicon-o-shopping-cart')

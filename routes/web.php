@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InventaireParEmplacementController;
 use App\Http\Controllers\EtiquetteController;
 use App\Http\Controllers\InventaireComptableController;
 use App\Http\Controllers\EmployeesAttestationController;
@@ -8,6 +9,9 @@ use App\Http\Controllers\EmployeesAttestationController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::middleware('auth')->get('/inventaire/par-emplacement', InventaireParEmplacementController::class)
+      ->name('inventaire.par-emplacement');
 Route::middleware('auth')->get('/inventaire/etiquettes', [EtiquetteController::class, 'index'])
     ->name('inventaire.etiquettes');
 Route::middleware('auth')->get('/inventaire/inventaire-comptable', InventaireComptableController::class)

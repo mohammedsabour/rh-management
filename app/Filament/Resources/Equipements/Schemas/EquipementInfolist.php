@@ -93,7 +93,7 @@ class EquipementInfolist
                 })
                 ->placeholder('Non affecté'),
  
-            TextEntry::make('emplacement.chemin_complet')
+            TextEntry::make('emplacement.nom')
                 ->label('Emplacement')
                 ->placeholder('—'),
  

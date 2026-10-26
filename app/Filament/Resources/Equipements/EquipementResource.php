@@ -6,6 +6,7 @@ use App\Filament\Resources\Equipements\Pages\CreateEquipement;
 use App\Filament\Resources\Equipements\Pages\EditEquipement;
 use App\Filament\Resources\Equipements\Pages\ListEquipements;
 use App\Filament\Resources\Equipements\Pages\ViewEquipement;
+use App\Filament\Resources\Equipements\RelationManagers\AffectationsRelationManager;
 use App\Filament\Resources\Equipements\Schemas\EquipementForm;
 use App\Filament\Resources\Equipements\Schemas\EquipementInfolist;
 use App\Filament\Resources\Equipements\Tables\EquipementsTable;
@@ -25,7 +26,11 @@ class EquipementResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'Equipement';
+    protected static ?string $modelLabel = 'équipement';
+ 
+    protected static ?string $pluralModelLabel = 'équipements';
+
+    protected static ?string $recordTitleAttribute = 'designation';
 
     public static function getGloballySearchableAttributes(): array
     {
@@ -50,7 +55,7 @@ class EquipementResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AffectationsRelationManager::class,
         ];
     }
 

@@ -69,7 +69,7 @@ class Equipement extends Model
         return $this->belongsTo(Emplacement::class);
     }
 
-   /*  public function affectations(): HasMany
+    public function affectations(): HasMany
     {
         return $this->hasMany(Affectation::class)->latest('date_debut');
     }
@@ -80,7 +80,7 @@ class Equipement extends Model
         return $this->hasOne(Affectation::class)->whereNull('date_fin')->latestOfMany('date_debut');
     }
 
-    public function lignesInventaire(): HasMany
+    /* public function lignesInventaire(): HasMany
     {
         return $this->hasMany(LigneInventaire::class);
     } */
