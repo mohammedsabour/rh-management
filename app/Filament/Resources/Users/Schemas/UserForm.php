@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use Spatie\Permission\Models\Role;
+use App\Support\Algerie;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -27,20 +30,6 @@ class UserForm
 
             return (bool) $user?->hasRole('admin');
         }
-    private const WILAYAS = [
-        'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar',
-        'Blida', 'Bouira', 'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret', 'Tizi Ouzou', 'Alger',
-        'Djelfa', 'Jijel', 'Sétif', 'Saïda', 'Skikda', 'Sidi Bel Abbès', 'Annaba', 'Guelma',
-        'Constantine', 'Médéa', 'Mostaganem', "M'Sila", 'Mascara', 'Ouargla', 'Oran', 'El Bayadh',
-        'Illizi', 'Bordj Bou Arréridj', 'Boumerdès', 'El Tarf', 'Tindouf', 'Tissemsilt', 'El Oued',
-        'Khenchela', 'Souk Ahras', 'Tipaza', 'Mila', 'Aïn Defla', 'Naâma', 'Aïn Témouchent',
-        'Ghardaïa', 'Relizane', 'Timimoun', 'Bordj Badji Mokhtar', 'Ouled Djellal', 'Béni Abbès',
-        'In Salah', 'In Guezzam', 'Touggourt', 'Djanet', "El M'Ghair", 'El Meniaa',
-    ];
-    private static function wilayas(): array
-    {
-        return array_combine(self::WILAYAS, self::WILAYAS);
-    }
 
     public static function configure(Schema $schema): Schema
     {
@@ -112,6 +101,17 @@ class UserForm
                                 ->required()
                                 ->maxLength(255)
                                 ->required(),
+                            TextInput::make('nom_ar')
+                                ->label('Nom en arabe')
+                                ->placeholder('أدخل الاسم')
+                                ->maxLength(255)
+                                ->extraInputAttributes(['dir' => 'rtl']),
+                            TextInput::make('prenom_ar')
+                                ->label('Prénom en arabe')
+                                ->placeholder('أدخل االقب')
+                                ->maxLength(255)
+                                ->extraInputAttributes(['dir' => 'rtl']),
+
                             Select::make('sexe')
                                 ->label('Sexe')
                                 ->options(['masculin' => 'Masculin', 'feminin' => 'Féminin'])
@@ -123,14 +123,17 @@ class UserForm
                                 ->required(),
                             Select::make('wilaya_naissance')
                                 ->label('Wilaya de naissance')
-                                ->options(self::wilayas())
+                                ->placeholder('Sélectionnez une wilaya')
+                                ->options(fn () => Algerie::wilayas())
                                 ->searchable()
-                                ->required(),
-                            TextInput::make('commune_naissance')
+                                ->live()
+                                ->afterStateUpdated(fn (Set $set) => $set('commune_naissance', null)),
+                            Select::make('commune_naissance')
                                 ->label('Commune de naissance')
-                                ->placeholder('Entrez la commune de naissance')
-                                ->maxLength(255)
-                                ->required(),
+                                ->placeholder('Sélectionnez une commune')
+                                ->options(fn (Get $get) => Algerie::communes($get('wilaya_naissance')))
+                                ->searchable()
+                                ->disabled(fn (Get $get) => blank($get('wilaya_naissance'))),
                             Select::make('situation_familiale')
                                 ->label('Situation familiale')
                                 ->options([
@@ -187,17 +190,22 @@ class UserForm
                                 ->maxLength(255)
                                 ->columnSpan(2)
                                 ->required(),
+
                             Select::make('wilaya_residence')
                                 ->label('Wilaya de résidence')
                                 ->placeholder('Sélectionnez une wilaya')
-                                ->options(self::wilayas())
+                                ->options(fn () => Algerie::wilayas())
                                 ->searchable()
-                                ->required(),
-                            TextInput::make('commune_residence')
+                                ->live()
+                                ->afterStateUpdated(fn (Set $set) => $set('commune_residence', null)),
+
+                            Select::make('commune_residence')
                                 ->label('Commune de résidence')
-                                ->placeholder('Entrez la commune de résidence')
-                                ->maxLength(255)
-                                ->required(),
+                                ->placeholder('Sélectionnez une commune')
+                                ->options(fn (Get $get) => Algerie::communes($get('wilaya_residence')))
+                                ->searchable()
+                                ->disabled(fn (Get $get) => blank($get('wilaya_residence'))),
+
                             Section::make('Pièces du dossier')
                                 ->description('Formats acceptés : PDF, JPG, PNG (5 Mo maximum par fichier).')
                                 ->columnSpanFull()

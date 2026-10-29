@@ -28,7 +28,9 @@ class User extends Authenticatable implements FilamentUser, HasName
     protected $fillable = [
         // Identité & état civil
         'nom',
+        'nom_ar',
         'prenom',
+        'prenom_ar',
         'date_naissance',
         'wilaya_naissance',
         'commune_naissance',

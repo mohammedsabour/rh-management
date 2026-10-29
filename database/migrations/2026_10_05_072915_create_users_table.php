@@ -16,7 +16,9 @@ return new class extends Migration
  
             // --- Bloc identité & état civil ---
             $table->string('nom');
+            $table->string('nom_ar')->nullable();
             $table->string('prenom');
+            $table->string('prenom_ar')->nullable();
             $table->date('date_naissance')->nullable();
             $table->string('wilaya_naissance')->nullable();
             $table->string('commune_naissance')->nullable();
