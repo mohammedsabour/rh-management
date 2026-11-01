@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id(); // ID_Employe
- 
+            $table->id();
             // --- Bloc identité & état civil ---
             $table->string('nom');
             $table->string('nom_ar')->nullable();
@@ -24,7 +23,7 @@ return new class extends Migration
             $table->string('commune_naissance')->nullable();
             $table->string('sexe', 10)->nullable();                       // masculin | feminin
             $table->string('situation_familiale', 20)->nullable();        // celibataire | marie | divorce | veuf
-            $table->text('nin')->nullable();                              // chiffré (cast 'encrypted')
+            $table->string('nin', 18)->nullable()->unique();              // chiffré (cast 'encrypted')
             $table->unsignedTinyInteger('nombre_enfants')->default(0);
             $table->unsignedTinyInteger('nombre_enfants_a_charge')->default(0);
             $table->string('situation_service_national', 20)->nullable(); // degage | incorpore | exempte | sursitaire
@@ -33,9 +32,9 @@ return new class extends Migration
             $table->string('commune_residence')->nullable();
             $table->string('telephone', 20)->nullable();
             $table->string('email')->unique();                            // identifiant de connexion
-            $table->string('email_personnel')->nullable();
+            $table->string('email_personnel')->nullable()->unique();
             $table->string('photo')->nullable(); 
- 
+    
             // --- Bloc contractuel & statutaire ---
             $table->date('date_embauche')->nullable();                    // date d'entrée
             $table->string('type_contrat', 10)->nullable();               // CDI | CDD | CTA
@@ -45,13 +44,15 @@ return new class extends Migration
             $table->string('echelon')->nullable();
             $table->string('grade')->nullable();
             $table->string('classe')->nullable();
+            $table->date('date_fin')->nullable();
+            $table->string('motif_depart', 20)->nullable();
  
             // --- Bloc sécurité sociale & paiement ---
-            $table->text('numero_assurance_sociale')->nullable();         // CNAS, chiffré
+            $table->string('numero_assurance_sociale', 10)->nullable()->unique();
             $table->string('cle_cnas', 2)->nullable();
             $table->boolean('conjoint_travaille')->nullable();
             $table->string('mode_paiement', 20)->nullable();              // virement_ccp | virement_bancaire
-            $table->text('numero_compte')->nullable();                    // RIP/RIB, chiffré
+            $table->text('numero_compte')->nullable()->unique();                    // RIP/RIB, chiffré
             $table->string('code_banque_agence')->nullable();
  
             // --- Bloc compétences & formations ---

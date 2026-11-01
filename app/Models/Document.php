@@ -19,6 +19,8 @@ class Document extends Model
         'fiche_familiale' => 'Fiche familiale',
         'contrat_travail' => 'Contrat de travail',
         'diplome' => 'Diplôme',
+        'justificatif_retraite' => 'Justificatif de retraite',
+        'acceptation_demission' => "Acceptation de démission",
     ];
     protected $fillable = ['employe_id','type', 'file_path','file_name', 'file_size', 'file_extension'];
 

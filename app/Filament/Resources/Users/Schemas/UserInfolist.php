@@ -117,11 +117,16 @@ class UserInfolist
                             self::text('echelon', 'Échelon'),
                             self::text('grade', 'Grade'),
                             self::text('classe', 'Classe'),
-                            self::text('jours_conges_restant', 'Jours de congés restants')->suffix(' jours'),
+                            self::text('jours_conges_restant', 'Jours de congés restants')->suffix(' jours')->visible(fn ($record) => $record && $record->is_active),
+                            self::text('date_fin', 'Date de fin du contrat')->date('d/m/Y')->visible(fn ($record) => $record && ! $record->is_active),
+                            self::text('motif_depart', 'Motif du départ')->visible(fn ($record) => $record && ! $record->is_active),
+
                             Section::make('Pièces du dossier')
                                 ->columnSpanFull()
                                 ->schema([
                                     self::documents('contrat_travail'),
+                                    self::documents('justificatif_retraite')->visible(fn ($record) => $record && ! $record->is_active),
+                                    self::documents('acceptation_demission')->visible(fn ($record) => $record && ! $record->is_active),
                                 ]),
                         ]),
  

@@ -24,6 +24,7 @@ class User extends Authenticatable implements FilamentUser, HasName
     public const SITUATIONS_SERVICE_NATIONAL = ['degage', 'incorpore', 'exempte', 'sursitaire'];
     public const TYPES_CONTRAT = ['CDI', 'CDD', 'CTA'];
     public const MODES_PAIEMENT = ['virement_ccp', 'virement_bancaire', 'cheque', 'espece'];
+    public const MOTIFS_DEPART = ['retraite' => 'Retraite', 'demission' => 'Démission'];
 
     protected $fillable = [
         // Identité & état civil
@@ -82,11 +83,6 @@ class User extends Authenticatable implements FilamentUser, HasName
         protected $hidden = [
         'password',
         'remember_token',
-        'nin',
-        'numero_assurance_sociale',
-        'cle_cnas',
-        'numero_compte',
-        'code_banque_agence',
     ];
 
     /**
@@ -104,11 +100,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             'conjoint_travaille' => 'boolean',
             'nombre_enfants' => 'integer',
             'nombre_enfants_a_charge' => 'integer',
- 
-            // Chiffrés en base avec APP_KEY
-            'nin' => 'encrypted',
-            'numero_assurance_sociale' => 'encrypted',
-            'numero_compte' => 'encrypted',
+            'date_fin' => 'date:Y-m-d',
         ];
     }
 
@@ -117,12 +109,6 @@ class User extends Authenticatable implements FilamentUser, HasName
         return trim("{$this->prenom} {$this->nom}");
     }
  
-    /* public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->is_active
-            && ($this->hasRole('admin') || $this->getAllPermissions()->isNotEmpty());
-    } */
-
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         return (bool) $this->is_active;

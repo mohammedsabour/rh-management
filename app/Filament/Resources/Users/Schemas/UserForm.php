@@ -84,11 +84,17 @@ class UserForm
                                 ->maxSize(2048)
                                 ->columnSpan(2),
                             TextInput::make('nin')
-                                ->label('Numéro d\'identification national (NIN)')
+                                ->label("Numéro d'identification national (NIN)")
                                 ->placeholder('10 988 0554 00345 0000')
-                                ->regex('/^\d{18}$/')
-                                ->validationMessages(['regex' => 'Le NIN doit contenir 18 chiffres.'])
+                                ->trim()
+                                ->inputMode('numeric')
                                 ->maxLength(18)
+                                ->regex('/^\d{18}$/')
+                                ->unique(ignoreRecord: true)
+                                ->validationMessages([
+                                    'regex' => 'Le NIN doit contenir exactement 18 chiffres (sans espaces).',
+                                    'unique' => 'Ce NIN est déjà attribué à un autre employé.',
+                                ])
                                 ->required(),
                             TextInput::make('nom')
                                 ->label('Nom')
@@ -144,8 +150,7 @@ class UserForm
                                 ])
                                 ->default('celibataire')
                                 ->required()
-                                ->live(),
-                            
+                                ->live(),                            
                             TextInput::make('nombre_enfants')
                                 ->label('Nombre d\'enfants')
                                 ->placeholder('Entrez le nombre d\'enfants')
@@ -183,6 +188,7 @@ class UserForm
                                 ->label('Email personnel')
                                 ->placeholder('entrez@votre-email.com')
                                 ->email()
+                                ->unique(ignoreRecord: true)
                                 ->maxLength(255),
                             TextInput::make('adresse')
                                 ->label('Adresse de résidence')
@@ -190,7 +196,6 @@ class UserForm
                                 ->maxLength(255)
                                 ->columnSpan(2)
                                 ->required(),
-
                             Select::make('wilaya_residence')
                                 ->label('Wilaya de résidence')
                                 ->placeholder('Sélectionnez une wilaya')
@@ -273,6 +278,8 @@ class UserForm
                                 ->columnSpanFull()
                                 ->schema([
                                     self::documentsRepeater('documents_contrat', 'contrat_travail'),
+                                    self::documentsRepeater('doc_retraite', 'justificatif_retraite')->visible(fn ($record) => $record && ! $record->is_active),
+                                    self::documentsRepeater('doc_demission', 'acceptation_demission')->visible(fn ($record) => $record && ! $record->is_active),
                                 ]),
                         ]),
  
@@ -284,9 +291,15 @@ class UserForm
                             TextInput::make('numero_assurance_sociale')
                                 ->label('N° de sécurité sociale (CNAS)')
                                 ->placeholder('ex: 8024360011')
-                                ->regex('/^\d{10}$/')
-                                ->validationMessages(['regex' => 'Le numéro CNAS doit contenir 10 chiffres.'])
+                                ->trim()
+                                ->inputMode('numeric')
                                 ->maxLength(10)
+                                ->regex('/^\d{10}$/')
+                                ->unique(ignoreRecord: true)
+                                ->validationMessages([
+                                    'regex' => 'Le numéro CNAS doit contenir exactement 10 chiffres (sans espaces).',
+                                    'unique' => 'Ce numéro de sécurité sociale est déjà attribué à un autre employé.',
+                                ])
                                 ->required(),
                             TextInput::make('cle_cnas')
                                 ->label('Clé CNAS')
@@ -377,6 +390,7 @@ class UserForm
                                     : "Seul l'administrateur peut modifier les rôles."),
                             Toggle::make('is_active')
                                 ->label('Compte actif')
+                                ->disabled()
                                 ->default(true),
                         ]),
                 ])

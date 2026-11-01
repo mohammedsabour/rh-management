@@ -20,6 +20,7 @@ class ViewUser extends ViewRecord
                 ->color('info')
                 ->url(fn ($record) => route('employee.attestation.download', $record))
                 ->openUrlInNewTab(),
+            \App\Filament\Resources\Users\Actions\MettreFinContratAction::make(),
             EditAction::make(),
         ];
     }
