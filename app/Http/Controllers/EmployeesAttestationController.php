@@ -19,11 +19,10 @@ class EmployeesAttestationController extends Controller
 {
     public function __invoke(Request $request, User $user)
     {
-        // Même droit que la consultation de la fiche employé
         Gate::authorize('view', $user);
 
-        // Une attestation de travail ne se délivre qu'à un employé en poste
-        abort_unless($user->is_active, 403, "Cet employé n'est plus en poste.");
+        // Employé parti : la date de fin est obligatoire (action « Mettre fin au contrat » du dossier)
+        abort_if(! $user->is_active && ! $user->date_fin, 422, "Renseignez d'abord la fin de contrat de cet employé.");
 
         $html = view('employees.attestation', [
             'user' => $user,
@@ -31,7 +30,7 @@ class EmployeesAttestationController extends Controller
             'nomComplet' => trim(($user->nom_ar ?: $user->nom) . ' ' . ($user->prenom_ar ?: $user->prenom)),
             'commune' => Algerie::communeAr($user->wilaya_naissance, $user->commune_naissance) ?? $user->commune_naissance,
             'wilaya' => Algerie::wilayaAr($user->wilaya_naissance) ?? $user->wilaya_naissance,
-            'numero' => $request->query('numero'),   // numéro d'ordre saisi par la RH (facultatif)
+            'numero' => $request->query('numero'),   // numéro d'ordre saisi par la RH
             'annee' => now()->year,
             'date' => now()->format('d/m/Y'),
             'entete' => public_path('images/attestation/entete.jpeg'),
@@ -48,8 +47,8 @@ class EmployeesAttestationController extends Controller
             'format' => 'A4',
             'orientation' => 'P',
             'margin_top' => 8,
-            'margin_left' => 20,
-            'margin_right' => 20,
+            'margin_left' => 10,
+            'margin_right' => 10,
             'margin_bottom' => 32,
             'margin_footer' => 6,
             'default_font' => 'dejavusans',
