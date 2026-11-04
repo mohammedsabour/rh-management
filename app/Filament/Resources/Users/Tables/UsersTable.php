@@ -22,8 +22,8 @@ class UsersTable
             ->columns([
                 ImageColumn::make('photo')
                     ->label('Photo')
-                    ->disk('public')
-                    ->visibility('public')
+                    ->disk('local')
+                    ->visibility('private')
                     ->circular()
                     ->size(40),
                 TextColumn::make('nom')

@@ -48,8 +48,8 @@ class UserInfolist
                 ->schema([
                     ImageEntry::make('photo')
                         ->hiddenLabel()
-                        ->disk('public')
-                        ->visibility('public')
+                        ->disk('local')
+                        ->visibility('private')
                         ->circular()
                         ->size(110),
                     Group::make([
@@ -117,7 +117,7 @@ class UserInfolist
                             self::text('echelon', 'Échelon'),
                             self::text('grade', 'Grade'),
                             self::text('classe', 'Classe'),
-                            self::text('jours_conges_restant', 'Jours de congés restants')->suffix(' jours')->visible(fn ($record) => $record && $record->is_active),
+                            self::text('joures_conges_restant', 'Jours de congés restants')->suffix(' jours')->visible(fn ($record) => $record && $record->is_active),
                             self::text('date_fin', 'Date de fin du contrat')->date('d/m/Y')->visible(fn ($record) => $record && ! $record->is_active),
                             self::text('motif_depart', 'Motif du départ')->visible(fn ($record) => $record && ! $record->is_active),
 

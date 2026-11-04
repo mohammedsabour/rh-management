@@ -6,7 +6,6 @@ use Spatie\Permission\Models\Role;
 use App\Support\Algerie;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Spatie\Permission\Traits\HasRoles;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -46,7 +45,7 @@ class UserForm
                 FileUpload::make('file_path')
                     ->label('Fichier')
                     ->disk(Document::DISK)
-                    ->directory('employes/documents')
+                    ->directory(\App\Models\Document::DOSSIER_TEMPORAIRE)
                     ->visibility('private')
                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                     ->maxSize(5120)
@@ -78,9 +77,9 @@ class UserForm
                                 ->image()
                                 ->avatar()
                                 ->imageEditor()
-                                ->disk('public')
-                                ->visibility('public')
-                                ->directory('photos')
+                                ->disk(\App\Models\Document::DISK)
+                                ->visibility('private')
+                                ->directory(\App\Models\Document::DOSSIER_TEMPORAIRE)
                                 ->maxSize(2048)
                                 ->columnSpan(2),
                             TextInput::make('nin')
@@ -268,7 +267,7 @@ class UserForm
                                 ->maxLength(255)
                                 ->placeholder('ex: 1, 2, 3, etc.')
                                 ->required(),
-                            TextInput::make('jours_conges_restant')
+                            TextInput::make('joures_conges_restant')
                                 ->label('Jours de congés restants')
                                 ->numeric()
                                 ->disabled()

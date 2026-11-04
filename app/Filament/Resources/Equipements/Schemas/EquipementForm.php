@@ -41,9 +41,9 @@ class EquipementForm
                             FileUpload::make('photo')
                                 ->label('Photo')
                                 ->image()
-                                ->disk('public')
+                                ->disk('local')
                                 ->directory('equipements')
-                                ->visibility('public')
+                                ->visibility('private')
                                 ->maxSize(4096),
                             TextInput::make('numero_inventaire')
                             ->label("N° d'inventaire")
@@ -127,6 +127,7 @@ class EquipementForm
                                 ->searchable()
                                 ->preload()
                                 ->columnSpanFull()
+                                ->required()
                                 ->createOptionForm([
                                     TextInput::make('nom')
                                         ->label('Nom')
