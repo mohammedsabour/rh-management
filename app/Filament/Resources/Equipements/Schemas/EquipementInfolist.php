@@ -16,7 +16,8 @@ class EquipementInfolist
             ->components([
                 ImageEntry::make('photo')
                 ->label('Photo')
-                ->disk('public')
+                ->disk('local')
+                ->visibility('private')
                 ->height(140)
                 ->placeholder('Aucune photo'),
  

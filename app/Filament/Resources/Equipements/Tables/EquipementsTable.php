@@ -9,6 +9,8 @@ use App\Models\Equipement;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Validation\Rule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,6 +18,7 @@ use Filament\Actions\ViewAction;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -43,10 +46,10 @@ class EquipementsTable
             ->columns([
                 ImageColumn::make('photo')
                     ->label('')
-                    ->disk('public')
+                    ->disk('local')
+                    ->visibility('private')
                     ->circular()
                     ->size(36),
-                
                 TextColumn::make('code_barre')
                     ->label('Code-barres')
                     ->searchable()
@@ -173,46 +176,87 @@ class EquipementsTable
             ->schema([
                 Select::make('employe_id')
                     ->label('Employé')
-                    ->options(fn () => User::orderBy('nom')->get()
+                    ->options(fn () => User::where('is_active', true)->orderBy('nom')->get()
                         ->mapWithKeys(fn (User $u) => [$u->id => trim($u->prenom . ' ' . $u->nom)]))
                     ->searchable()
+                    ->live()
+                    ->disabled(fn (Get $get) => filled($get('departement_id')))
                     ->requiredWithout('departement_id'),
- 
+
                 Select::make('departement_id')
                     ->label('Ou département (bien partagé)')
                     ->options(fn () => Departement::orderBy('nom')->pluck('nom', 'id'))
                     ->searchable()
+                    ->live()
+                    ->disabled(fn (Get $get) => filled($get('employe_id')))
                     ->requiredWithout('employe_id'),
- 
+
                 DatePicker::make('date_debut')
                     ->label("Date d'affectation")
                     ->default(now())
+                    ->minDate(fn (Equipement $record) => $record->affectationEnCours?->date_debut)
+                    ->maxDate(today())
                     ->required(),
+
+                Select::make('emplacement_id')
+                    ->label('Rangé dans (emplacement)')
+                    ->options(fn () => Emplacement::with('parent.parent.parent')->get()
+                        ->mapWithKeys(fn (Emplacement $e) => [$e->id => $e->chemin_complet])
+                        ->sort())
+                    ->default(fn (Equipement $record) => $record->emplacement_id)
+                    ->searchable()
+                    ->required()
+                    ->createOptionForm([
+                        TextInput::make('nom')->label('Nom')->placeholder('Ex. Bureau 12')->required()->maxLength(255),
+                        TextInput::make('code')->label('Code')->helperText('Facultatif (ex. A-1-12)')
+                            ->maxLength(20)
+                            ->rule(Rule::unique('emplacements', 'code')),
+                        Select::make('type')->label('Type')->options(Emplacement::TYPES)->default('bureau')->required()->native(false),
+                        Select::make('departement_id')->label('Département')->placeholder('Aucun')
+                            ->options(fn () => Departement::orderBy('nom')->pluck('nom', 'id'))
+                            ->searchable()
+                            ->columnSpanFull(),
+                    ])
+                    ->createOptionUsing(fn (array $data) => Emplacement::create($data)->getKey()),
  
                 Textarea::make('notes')
                     ->label('Notes')
                     ->rows(2),
             ])
             ->action(function (Equipement $record, array $data) {
-                DB::transaction(function () use ($record, $data) {
-                    // On clôture l'affectation en cours (réaffectation directe), puis on en ouvre une nouvelle.
-                    // Requête explicite : évite un UPDATE ... ORDER BY invalide sous PostgreSQL.
-                    Affectation::where('equipement_id', $record->id)
-                        ->whereNull('date_fin')
-                        ->update(['date_fin' => $data['date_debut']]);
- 
-                    Affectation::create([
-                        'equipement_id' => $record->id,
-                        'employe_id' => $data['employe_id'] ?? null,
-                        'departement_id' => $data['departement_id'] ?? null,
-                        'date_debut' => $data['date_debut'],
-                        'notes' => $data['notes'] ?? null,
-                        'cree_par' => Auth::id(),
-                    ]);
- 
-                    $record->update(['statut' => 'affecte']);
-                });
- 
+                try {
+                    DB::transaction(function () use ($record, $data) {
+                        $equipement = Equipement::whereKey($record->id)->lockForUpdate()->firstOrFail();
+
+                        if (! in_array($equipement->statut, ['en_stock', 'affecte'], true)) {
+                            throw new \RuntimeException('Cet équipement ne peut plus être affecté (statut : '
+                                . (Equipement::STATUTS[$equipement->statut] ?? $equipement->statut) . ').');
+                        }
+
+                        Affectation::where('equipement_id', $equipement->id)
+                            ->whereNull('date_fin')
+                            ->update(['date_fin' => $data['date_debut']]);
+
+                        Affectation::create([
+                            'equipement_id' => $equipement->id,
+                            'employe_id' => $data['employe_id'] ?? null,
+                            'departement_id' => $data['departement_id'] ?? null,
+                            'date_debut' => $data['date_debut'],
+                            'notes' => $data['notes'] ?? null,
+                            'cree_par' => Auth::id(),
+                        ]);
+
+                        $equipement->update([
+                            'statut' => 'affecte',
+                            'emplacement_id' => $data['emplacement_id'] ?? $equipement->emplacement_id,
+                        ]);
+                    });
+                } catch (\RuntimeException $e) {
+                    Notification::make()->danger()->title($e->getMessage())->send();
+
+                    return;
+                }
+
                 Notification::make()->success()->title('Équipement affecté')->send();
             });
     }
