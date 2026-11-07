@@ -46,7 +46,7 @@ class CreateDemandeConge extends CreateRecord
             $this->refuserSaisie('Vous avez déjà une demande (en attente ou approuvée) sur cette période.');
         }
  
-        if (in_array($data['type'], DemandeConge::TYPES_DECOMPTES, true)) {
+       /*  if (in_array($data['type'], DemandeConge::TYPES_DECOMPTES, true)) {
             $enAttente = (int) DemandeConge::where('employe_id', $user->id)
                 ->where('statut', 'en_attente')
                 ->whereIn('type', DemandeConge::TYPES_DECOMPTES)
@@ -56,7 +56,7 @@ class CreateDemandeConge extends CreateRecord
             if ($jours > $disponible) {
                 $this->refuserSaisie("Solde insuffisant : {$jours} jour(s) demandé(s), {$disponible} disponible(s).");
             }
-        }
+        } */
  
         return $data + [
             'employe_id' => $user->id,

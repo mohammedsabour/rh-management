@@ -267,12 +267,12 @@ class UserForm
                                 ->maxLength(255)
                                 ->placeholder('ex: 1, 2, 3, etc.')
                                 ->required(),
-                            TextInput::make('joures_conges_restant')
+                            /* TextInput::make('joures_conges_restant')
                                 ->label('Jours de congés restants')
                                 ->numeric()
                                 ->disabled()
                                 ->dehydrated(false)
-                                ->visibleOn('edit'),
+                                ->visibleOn('edit'), */
                             Section::make('Pièces du dossier')
                                 ->columnSpanFull()
                                 ->schema([
