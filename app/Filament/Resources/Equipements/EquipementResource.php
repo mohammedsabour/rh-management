@@ -27,11 +27,13 @@ class EquipementResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $modelLabel = 'équipement';
- 
+
+    protected static ?int $navigationSort = 2;
+    
     protected static ?string $pluralModelLabel = 'équipements';
 
     protected static ?string $recordTitleAttribute = 'designation';
-
+    
     public static function getGloballySearchableAttributes(): array
     {
         return ['code_barre', 'numero_inventaire', 'designation', 'numero_serie'];
