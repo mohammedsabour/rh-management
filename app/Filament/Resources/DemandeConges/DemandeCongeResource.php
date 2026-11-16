@@ -68,10 +68,6 @@ class DemandeCongeResource extends Resource
  
     public static function form(Schema $schema): Schema
     {
-        /** @var User $user */
-        $user = Auth::user();
-        $solde = (int) $user->getAttribute(DemandeConge::COLONNE_SOLDE);
- 
         return $schema->components([
             Select::make('type')
                 ->label('Type de congé')
@@ -79,7 +75,8 @@ class DemandeCongeResource extends Resource
                 ->default('annuel')
                 ->required()
                 ->native(false)
-                ->helperText("Votre solde de congé annuel : {$solde} jour(s)."),
+                ->columnSpanFull(),
+                //->helperText("Votre solde de congé annuel : {$solde} jour(s)."),
             DatePicker::make('date_debut')
                 ->label('Du')
                 ->required()
@@ -90,7 +87,8 @@ class DemandeCongeResource extends Resource
             DatePicker::make('date_fin')
                 ->label('Au')
                 ->required()
-                ->afterOrEqual('date_debut')
+                ->minDate(today())
+                ->after('date_debut')
                 ->native(false)
                 ->displayFormat('d/m/Y'),
             Textarea::make('commentaire')
@@ -118,7 +116,7 @@ class DemandeCongeResource extends Resource
             TextEntry::make('date_debut')->label('Du')->date('d/m/Y'),
             TextEntry::make('date_fin')->label('Au')->date('d/m/Y'),
             TextEntry::make('nombre_jours')->label('Jours ouvrés'),
-            TextEntry::make('employe.joures_conges_restant')->label('Solde actuel de l\'employé'),
+            //TextEntry::make('employe.joures_conges_restant')->label('Solde actuel de l\'employé'),
             TextEntry::make('commentaire')->label('Commentaire de l\'employé')->placeholder('—'),
             TextEntry::make('statut')
                 ->label('Statut')

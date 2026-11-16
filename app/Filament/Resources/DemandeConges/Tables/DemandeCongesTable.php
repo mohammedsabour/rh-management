@@ -80,10 +80,18 @@ class DemandeCongesTable
             ->icon(Heroicon::OutlinedNoSymbol)
             ->color('gray')
             ->authorize('annuler')
+            ->visible(fn (DemandeConge $record) => $record->employe_id === Auth::id() && $record->estEnAttente())
             ->requiresConfirmation()
             ->action(function (DemandeConge $record) {
-                $record->update(['statut' => 'annule']);
+                /** @var User $rh */
+                $rh = Auth::user();
+                try {
+                    $record->annuler($rh);
+                } catch (RuntimeException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
  
+                    return;
+                }
                 Notification::make()->title('Demande annulée')->success()->send();
             });
     }
@@ -97,9 +105,9 @@ class DemandeCongesTable
             ->authorize('traiter')
             ->requiresConfirmation()
             ->modalHeading('Approuver cette demande ?')
-            ->modalDescription(fn (DemandeConge $record) => $record->decompteLeSolde()
+            /* ->modalDescription(fn (DemandeConge $record) => $record->decompteLeSolde()
                 ? "{$record->nombre_jours} jour(s) seront déduits du solde de l'employé."
-                : "Ce type de congé ne modifie pas le solde de l'employé.")
+                : "Ce type de congé ne modifie pas le solde de l'employé.") */
             ->action(function (DemandeConge $record) {
                 /** @var User $rh */
                 $rh = Auth::user();

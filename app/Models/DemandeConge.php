@@ -31,7 +31,7 @@ class DemandeConge extends Model
     /** Types qui consomment le solde de congés de l'employé. */
     public const TYPES_DECOMPTES = ['annuel'];
 
-    /** Jours de week-end en Algérie : vendredi (5) et samedi (6). */
+    /** Jours de week-end : vendredi (5) et samedi (6). */
     public const JOURS_WEEKEND = [Carbon::FRIDAY, Carbon::SATURDAY];
 
     /** Nom réel de la colonne « solde » dans la table users. */
@@ -108,9 +108,6 @@ class DemandeConge extends Model
     // ------------------------------------------------------------------ décisions RH
 
     /**
-     * Approuve la demande. Tout se passe dans une transaction avec verrou, pour qu'un double clic
-     * ou deux RH simultanés ne décomptent pas le solde deux fois.
-     *
      * @throws RuntimeException si la demande est déjà traitée ou si le solde est insuffisant
      */
     public function approuver(User $rh): void
@@ -122,7 +119,7 @@ class DemandeConge extends Model
                 throw new RuntimeException('Cette demande a déjà été traitée.');
             }
 
-            if ($demande->decompteLeSolde()) {
+            /* if ($demande->decompteLeSolde()) {
                 $employe = User::whereKey($demande->employe_id)->lockForUpdate()->firstOrFail();
                 $solde = (int) $employe->getAttribute(self::COLONNE_SOLDE);
 
@@ -133,7 +130,7 @@ class DemandeConge extends Model
                 }
 
                 $employe->decrement(self::COLONNE_SOLDE, $demande->nombre_jours);
-            }
+            } */
 
             $demande->update([
                 'statut' => 'approuve',
@@ -166,4 +163,26 @@ class DemandeConge extends Model
 
         $this->refresh();
     }
+
+    public function annuler(User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            $demande = self::whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($demande->employe_id !== $user->id) {
+                throw new RuntimeException('Vous ne pouvez annuler que votre propre demande.');
+            }
+
+            if (! $demande->estEnAttente()) {
+                throw new RuntimeException('Cette demande a déjà été traitée.');
+            }
+
+            $demande->update([
+                'statut' => 'annule',
+                'motif_refus' => null,
+            ]);
+        });
+
+        $this->refresh();
+    }    
 }

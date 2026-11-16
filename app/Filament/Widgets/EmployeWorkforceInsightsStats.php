@@ -2,51 +2,76 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\DemoIconAlias;
-use App\Models\Departement;
+use App\Models\Absence;
+use App\Models\DemandeConge;
 use App\Models\User;
-use Filament\Support\Facades\FilamentIcon;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeWorkforceInsightsStats extends BaseWidget
 {
     protected static ?int $sort = 1;
 
-    private function employes(): Builder
-    {
-        return User::query();
-    }
+    protected static bool $isDiscovered = false;
 
     protected function getStats(): array
     {
-        $totalActifs = $this->employes()->where('is_active', 'true')->count();
-        $totalEmployes = $this->employes()->count();
-        $totalInactifs = $this->employes()->where('is_active', 'false')->count();
+        /** @var User $emp */
+        $emp = Auth::user();
 
-        // Contrats à durée déterminée (CDD + CTA) parmi les actifs
-        $parContrat = $this->employes()
-            ->where('is_active', 'true')
-            ->selectRaw('type_contrat, count(*) as total')
-            ->groupBy('type_contrat')
-            ->pluck('total', 'type_contrat');
-        $cdd = (int) ($parContrat['CDD'] ?? 0);
-        $cta = (int) ($parContrat['CTA'] ?? 0);
-        $tauxDeterminee = $totalActifs > 0
-            ? round((($cdd + $cta) / $totalActifs) * 100, 1)
-            : 0;
+        // Absences du mois en cours (une ligne = un jour d'absence)
+        $absencesMois = Absence::where('employe_id', $emp->id)
+            ->whereBetween('date_absence', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->count();
+        $absencesAnnee = Absence::where('employe_id', $emp->id)
+            ->whereYear('date_absence', now()->year)
+            ->count();
+
+        // Demandes de congé
+        $demandes = DemandeConge::where('employe_id', $emp->id)
+            ->selectRaw('statut, count(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
+        $totalDemandes = (int) $demandes->sum();
+        $enAttente = (int) ($demandes['en_attente'] ?? 0);
+        $approuvees = (int) ($demandes['approuve'] ?? 0);
+
+        // Jours de congé réellement pris cette année (demandes approuvées déjà commencées)
+        $joursPris = (int) DemandeConge::where('employe_id', $emp->id)
+            ->where('statut', 'approuve')
+            ->whereYear('date_debut', now()->year)
+            ->where('date_debut', '<=', now()->toDateString())
+            ->sum('nombre_jours');
+
+        // Prochain congé approuvé
+        $prochain = DemandeConge::where('employe_id', $emp->id)
+            ->where('statut', 'approuve')
+            ->whereDate('date_fin', '>=', today())
+            ->orderBy('date_debut')
+            ->first();
 
         return [
-            Stat::make('Jours des absence par mois', (string) $totalActifs)
-                ->description(Departement::count() . ' département(s)')
-                ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_CAPACITY) ?? Heroicon::UserGroup)
-                ->color($totalActifs > 0 ? 'success' : 'gray'),
-            Stat::make('Jours restants de congé', $tauxDeterminee . ' jr')
-                ->description($cdd . ' CDD, ' . $cta . ' CTA')
-                ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_CONTRACTORS) ?? Heroicon::Briefcase)
-                ->color('info'),
+            Stat::make('Jours d\'absence ce mois', (string) $absencesMois)
+                ->description($absencesAnnee . ' sur l\'année ' . now()->year)
+                ->descriptionIcon(Heroicon::CalendarDays)
+                ->color($absencesMois > 0 ? 'warning' : 'success'),
+
+            Stat::make('Demandes de congé', (string) $totalDemandes)
+                ->description($enAttente . ' en attente, ' . $approuvees . ' approuvée(s)')
+                ->descriptionIcon(Heroicon::DocumentText)
+                ->color($enAttente > 0 ? 'warning' : 'info'),
+
+            Stat::make('Congés pris cette année', $joursPris . ' jr')
+                ->description('Jours ouvrés, demandes approuvées')
+                ->descriptionIcon(Heroicon::Sun)
+                ->color('success'),
+
+            Stat::make('Prochain congé', $prochain ? $prochain->date_debut->format('d/m/Y') : '—')
+                ->description($prochain ? 'au ' . $prochain->date_fin->format('d/m/Y') : 'Aucun congé approuvé à venir')
+                ->descriptionIcon(Heroicon::Calendar)
+                ->color($prochain ? 'info' : 'gray'),
         ];
     }
 }

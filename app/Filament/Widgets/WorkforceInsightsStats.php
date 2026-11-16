@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Filament\DemoIconAlias;
 use App\Models\Departement;
 use App\Models\User;
+use App\Models\DemandeConge;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -25,7 +26,7 @@ class WorkforceInsightsStats extends BaseWidget
         $totalActifs = $this->employes()->where('is_active', 'true')->count();
         $totalEmployes = $this->employes()->count();
         $totalInactifs = $this->employes()->where('is_active', 'false')->count();
-
+               
         // Ancienneté moyenne (en années) des employés actifs ayant une date d'entrée
         $ancienneteMoyenne = $this->employes()
             ->where('is_active', 'true')
@@ -45,18 +46,30 @@ class WorkforceInsightsStats extends BaseWidget
             ->selectRaw('type_contrat, count(*) as total')
             ->groupBy('type_contrat')
             ->pluck('total', 'type_contrat');
+        
         $cdd = (int) ($parContrat['CDD'] ?? 0);
         $cta = (int) ($parContrat['CTA'] ?? 0);
         $tauxDeterminee = $totalActifs > 0
             ? round((($cdd + $cta) / $totalActifs) * 100, 1)
             : 0;
 
+        $demandes = DemandeConge::whereHas('employe', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->selectRaw('statut, COUNT(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
+
+        $totalDemandes = (int) $demandes->sum();
+        $enAttente = (int) ($demandes['en_attente'] ?? 0);
+        $approuvees = (int) ($demandes['approuve'] ?? 0);
+        
         return [
             Stat::make('Ancienneté moyenne', $ancienneteMoyenne . ' ans')
                 ->description($totalActifs . ' employés actifs')
                 ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_TENURE) ?? Heroicon::Clock)
                 ->color('primary'),
-            Stat::make('Taux de départ', $tauxDepart . '%')
+            Stat::make('Taux de départ', $tauxDepart . '%')            
                 ->description($totalInactifs . ' inactif(s) sur ' . $totalEmployes)
                 ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_TURNOVER) ?? Heroicon::ArrowRightOnRectangle)
                 ->color($tauxDepart > 20 ? 'danger' : 'warning'),
@@ -64,8 +77,8 @@ class WorkforceInsightsStats extends BaseWidget
                 ->description(Departement::count() . ' département(s)')
                 ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_CAPACITY) ?? Heroicon::UserGroup)
                 ->color($totalActifs > 0 ? 'success' : 'gray'),
-            Stat::make('Demende de congé', $tauxDeterminee . '%')
-                ->description($cdd . ' CDD, ' . $cta . ' CTA')
+            Stat::make('Demende de congé', $totalDemandes)
+                ->description($enAttente . ' en attente, ' . $approuvees . ' approuvée(s)')
                 ->descriptionIcon(FilamentIcon::resolve(DemoIconAlias::WIDGETS_WORKFORCE_CONTRACTORS) ?? Heroicon::Briefcase)
                 ->color('info'),
         ];

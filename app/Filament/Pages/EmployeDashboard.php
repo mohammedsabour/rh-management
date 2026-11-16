@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\EmployeAbsenceCalendar;
 use Filament\Pages\Dashboard as BaseDashboard;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use App\Filament\DemoIconAlias;
@@ -21,6 +22,12 @@ class EmployeDashboard extends BaseDashboard
     {
         return [
             EmployeWorkforceInsightsStats::class,
+            EmployeAbsenceCalendar::class,
         ];
+    }
+
+    public function getColumns(): int|array
+    {
+        return 1;
     }
 }
