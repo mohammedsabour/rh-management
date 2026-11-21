@@ -5,8 +5,8 @@ namespace App\Filament\Resources\Inventaires;
 use App\Filament\Resources\Inventaires\Pages\CreateInventaire;
 use App\Filament\Resources\Inventaires\Pages\EditInventaire;
 use App\Filament\Resources\Inventaires\Pages\ListInventaires;
+use App\Filament\Resources\Inventaires\Pages\Rapprochement;
 use App\Filament\Resources\Inventaires\Pages\ViewInventaire;
-use App\Filament\Resources\Inventaires\Pages\ScannerInventaire;
 use App\Filament\Resources\Inventaires\RelationManagers\LignesRelationManager;
 use App\Filament\Resources\Inventaires\Schemas\InventaireForm;
 use App\Filament\Resources\Inventaires\Schemas\InventaireInfolist;
@@ -17,6 +17,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class InventaireResource extends Resource
@@ -27,15 +29,27 @@ class InventaireResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Ressources Matérielles';
 
-    protected static ?int $navigationSort = 3;
-
-    protected static ?string $recordTitleAttribute = 'Inventaire';
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'récolement';
- 
+
     protected static ?string $pluralModelLabel = 'récolements';
- 
+
     protected static ?string $navigationLabel = 'Récolements';
+
+    protected static ?string $recordTitleAttribute = 'nom';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Auth::user();
+
+        if ($user && ! $user->hasRole('admin')) {
+            $query->whereDoesntHave('commissions.membres', fn ($q) => $q->where('user_id', $user->id));
+        }
+
+        return $query;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -66,7 +80,7 @@ class InventaireResource extends Resource
             'create' => CreateInventaire::route('/create'),
             'view' => ViewInventaire::route('/{record}'),
             'edit' => EditInventaire::route('/{record}/edit'),
-            'scanner' => ScannerInventaire::route('/{record}/scanner'),
+            'rapprochement' => Rapprochement::route('/{record}/rapprochement'),
         ];
     }
 }

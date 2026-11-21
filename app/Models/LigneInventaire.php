@@ -6,19 +6,24 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Ce qu'UNE commission a constaté (ou n'a pas retrouvé) pour UN équipement.
+ */
 class LigneInventaire extends Model
 {
     protected $table = 'ligne_inventaires';
 
     protected $fillable = [
-        'inventaire_id', 'equipement_id', 'emplacement_constate_id',
-        'etat_constate', 'scanne_le', 'scanne_par', 'remarque',
+        'inventaire_id', 'commission_id', 'equipement_id',
+        'emplacement_attendu_id', 'etat_attendu', 'hors_perimetre',
+        'emplacement_constate_id', 'etat_constate', 'scanne_le', 'scanne_par', 'remarque',
     ];
 
     protected function casts(): array
     {
         return [
             'scanne_le' => 'datetime',
+            'hors_perimetre' => 'boolean',
         ];
     }
 
@@ -27,9 +32,19 @@ class LigneInventaire extends Model
         return $this->belongsTo(Inventaire::class);
     }
 
+    public function commission(): BelongsTo
+    {
+        return $this->belongsTo(CommissionInventaire::class, 'commission_id');
+    }
+
     public function equipement(): BelongsTo
     {
         return $this->belongsTo(Equipement::class);
+    }
+
+    public function emplacementAttendu(): BelongsTo
+    {
+        return $this->belongsTo(Emplacement::class, 'emplacement_attendu_id');
     }
 
     public function emplacementConstate(): BelongsTo
@@ -42,7 +57,6 @@ class LigneInventaire extends Model
         return $this->belongsTo(User::class, 'scanne_par');
     }
 
-    // Biens retrouvés / introuvables
     public function scopeRetrouvees(Builder $query): Builder
     {
         return $query->whereNotNull('scanne_le');
@@ -53,32 +67,8 @@ class LigneInventaire extends Model
         return $query->whereNull('scanne_le');
     }
 
-    // Retrouvé, mais pas à l'emplacement enregistré
-    public function scopeDeplacees(Builder $query): Builder
+    public function getRetrouveAttribute(): bool
     {
-        return $query->whereNotNull('scanne_le')
-            ->whereNotNull('emplacement_constate_id')
-            ->whereHas('equipement', fn ($q) => $q->where(
-                fn ($w) => $w->whereColumn('equipements.emplacement_id', '<>', 'ligne_inventaires.emplacement_constate_id')
-                    ->orWhereNull('equipements.emplacement_id')
-            ));
+        return $this->scanne_le !== null;
     }
-
-    public function getDeplaceAttribute(): bool
-    {
-        return $this->scanne_le !== null
-            && $this->emplacement_constate_id !== null
-            && $this->emplacement_constate_id !== $this->equipement->emplacement_id;
-    }
-
-    /** Situation pour l'affichage : A_RETROUVER | RETROUVE | DEPLACE */
-    public function getSituationAttribute(): string
-    {
-        if ($this->scanne_le === null) {
-            return 'a_retrouver';
-        }
- 
-        return $this->deplace ? 'deplace' : 'retrouve';
-    }
-
 }

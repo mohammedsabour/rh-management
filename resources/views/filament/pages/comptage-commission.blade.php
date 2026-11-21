@@ -1,17 +1,10 @@
 <x-filament-panels::page>
     @php
-        $stats = $this->record->statistiques();
-        $couleurs = [
-            'ok' => '#16a34a', 'deplace' => '#ea580c', 'hors_perimetre' => '#ca8a04', 'attention' => '#ca8a04',
-            'deja' => '#6b7280', 'inconnu' => '#dc2626', 'ferme' => '#dc2626',
-        ];
+        $couleurs = ['ok' => '#16a34a', 'deja' => '#6b7280', 'inconnu' => '#dc2626', 'ferme' => '#dc2626', 'incomplet' => '#ea580c'];
         $dernier = $this->historique[0] ?? null;
     @endphp
 
     <style>
-        .sc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .75rem; }
-        .sc-stat { border: 1px solid rgba(128,128,128,.3); border-radius: .5rem; padding: .6rem .9rem; }
-        .sc-stat b { display: block; font-size: 1.5rem; }
         .sc-reglages { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
         .sc-retour { color: #fff; border-radius: .5rem; padding: 1rem 1.25rem; }
         .sc-retour strong { display: block; font-size: 1.25rem; }
@@ -19,36 +12,36 @@
         .sc-pastille { width: .7rem; height: .7rem; border-radius: 50%; flex: none; align-self: center; }
     </style>
 
-    <div class="sc-stats">
-        <div class="sc-stat"><span>À contrôler</span><b>{{ $stats['attendus'] }}</b></div>
-        <div class="sc-stat"><span>Retrouvés</span><b style="color:#16a34a">{{ $stats['retrouves'] }}</b></div>
-        <div class="sc-stat"><span>Restant</span><b style="color:#dc2626">{{ $stats['manquants'] }}</b></div>
-        <div class="sc-stat"><span>Déplacés</span><b style="color:#ea580c">{{ $stats['deplaces'] }}</b></div>
-        <div class="sc-stat"><span>Avancement</span><b>{{ $stats['avancement'] }} %</b></div>
-    </div>
+    {{-- Statistiques du comptage de CETTE commission (jamais l'emplacement ni l'état enregistrés) --}}
+    @php $stats = $this->statistiques(); @endphp
+    <x-filament::section>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap:1rem; text-align:center">
+            <div><div style="font-size:.8rem; opacity:.7">À contrôler</div><strong style="font-size:1.6rem">{{ $stats['a_controler'] }}</strong></div>
+            <div><div style="font-size:.8rem; opacity:.7">Retrouvés</div><strong style="font-size:1.6rem; color:#16a34a">{{ $stats['retrouves'] }}</strong></div>
+            <div><div style="font-size:.8rem; opacity:.7">Restant</div><strong style="font-size:1.6rem; color:#ea580c">{{ $stats['restant'] }}</strong></div>
+            <div><div style="font-size:.8rem; opacity:.7">Avancement</div><strong style="font-size:1.6rem">{{ $stats['avancement'] }} %</strong></div>
+        </div>
+        <div style="margin-top:.75rem; height:.5rem; border-radius:999px; background:rgba(128,128,128,.25); overflow:hidden">
+            <div style="height:100%; width:{{ $stats['avancement'] }}%; background:#16a34a"></div>
+        </div>
+    </x-filament::section>
 
     <x-filament::section>
         <div class="sc-reglages">
             <div>
                 <label for="code-scan" style="font-weight:600">Code-barres</label>
                 <x-filament::input.wrapper>
-                    <x-filament::input
-                        id="code-scan"
-                        type="text"
-                        wire:model="code"
-                        wire:keydown.enter="scanner"
-                        autofocus
-                        autocomplete="off"
-                        placeholder="Scannez un code-barres ou saisissez un n° d'inventaire, puis Entrée"
-                    />
+                    <x-filament::input id="code-scan" type="text" wire:model="code" wire:keydown.enter="scanner"
+                        autofocus autocomplete="off"
+                        placeholder="Scannez un code-barres ou saisissez un n° d'inventaire, puis Entrée" />
                 </x-filament::input.wrapper>
             </div>
 
             <div>
-                <label style="font-weight:600">Je suis dans (emplacement constaté)</label>
+                <label style="font-weight:600">Je suis dans (obligatoire)</label>
                 <x-filament::input.wrapper>
                     <x-filament::input.select wire:model="emplacementId">
-                        <option value="">Emplacement enregistré du bien</option>
+                        <option value="">— Choisir l'emplacement —</option>
                         @foreach ($this->emplacements() as $id => $nom)
                             <option value="{{ $id }}">{{ $nom }}</option>
                         @endforeach
@@ -57,10 +50,10 @@
             </div>
 
             <div>
-                <label style="font-weight:600">État constaté (facultatif)</label>
+                <label style="font-weight:600">État constaté (obligatoire)</label>
                 <x-filament::input.wrapper>
                     <x-filament::input.select wire:model="etat">
-                        <option value="">État enregistré du bien</option>
+                        <option value="">— Choisir l'état —</option>
                         @foreach ($this->etats() as $valeur => $libelle)
                             <option value="{{ $valeur }}">{{ $libelle }}</option>
                         @endforeach
@@ -77,14 +70,19 @@
         @endif
     </x-filament::section>
 
-    @if (count($this->historique) > 1)
-        <x-filament::section heading="Derniers pointages">
+    @if (count($this->historique) > 0)
+        <x-filament::section heading="Derniers enregistrements">
             @foreach ($this->historique as $ligne)
                 <div class="sc-ligne">
                     <span class="sc-pastille" style="background: {{ $couleurs[$ligne['type']] ?? '#6b7280' }}"></span>
                     <span>{{ $ligne['heure'] }}</span>
                     <strong>{{ $ligne['designation'] ?? $ligne['code'] }}</strong>
                     <span>{{ $ligne['message'] }}</span>
+                    @if ($ligne['type'] === 'ok' && $ligne['ligne_id'])
+                        <button type="button" wire:click="annuler({{ $ligne['ligne_id'] }})"
+                            wire:confirm="Annuler cet enregistrement ?"
+                            style="margin-left:auto; color:#dc2626; font-size:.8rem">Annuler</button>
+                    @endif
                 </div>
             @endforeach
         </x-filament::section>
