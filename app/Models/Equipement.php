@@ -28,7 +28,11 @@ class Equipement extends Model
         'perdu'          => 'Perdu',
     ];
 
-    // code_barre n'est pas fillable : il est généré automatiquement (voir booted)
+    protected $attributes = [
+        'etat' => 'neuf',
+        'statut' => 'en_stock',
+    ];
+
     protected $fillable = [
         'numero_inventaire', 'designation', 'categorie_id',
         'marque', 'modele', 'numero_serie',
@@ -74,16 +78,15 @@ class Equipement extends Model
         return $this->hasMany(Affectation::class)->latest('date_debut');
     }
 
-    // Affectation en cours (date_fin nulle), s'il y en a une
     public function affectationEnCours(): HasOne
     {
         return $this->hasOne(Affectation::class)->whereNull('date_fin')->latestOfMany('date_debut');
     }
 
-    /* public function lignesInventaire(): HasMany
+    public function lignesInventaire(): HasMany
     {
         return $this->hasMany(LigneInventaire::class);
-    } */
+    }
 
     /* ---------- Scopes ---------- */
 
@@ -99,7 +102,6 @@ class Equipement extends Model
 
     /* ---------- Utilitaires ---------- */
 
-    // Recherche par scan : Equipement::parCodeBarre($valeur)->first()
     public function scopeParCodeBarre(Builder $query, string $code): Builder
     {
         return $query->where('code_barre', trim($code));

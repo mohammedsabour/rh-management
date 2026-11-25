@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Equipements\Schemas;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Emplacement;
+use App\Models\CategorieEquipement;
 use App\Models\Equipement;
 use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,10 +47,13 @@ class EquipementForm
                                 ->visibility('private')
                                 ->maxSize(4096),
                             TextInput::make('numero_inventaire')
-                            ->label("N° d'inventaire")
+                                ->label("N° d'inventaire")
+                                ->helperText("Non modifiable après l'ajout")
+                                ->disabled(fn (string $operation) => $operation === 'edit')
+                                ->dehydrated(fn (string $operation) => $operation === 'create')
+                                ->required()
                                 ->maxLength(50)
-                                ->unique(ignoreRecord: true)
-                                ->required(),
+                                ->unique(ignoreRecord: true),
                             TextInput::make('designation')
                                 ->label('Désignation')
                                 ->placeholder('Ex. PC portable Dell Latitude 5440')
@@ -58,6 +62,8 @@ class EquipementForm
                                 ->required(),
                             Select::make('categorie_id')
                                 ->label('Catégorie')
+                                ->disabled(fn (string $operation) => $operation === 'edit')
+                                ->dehydrated(fn (string $operation) => $operation === 'create')
                                 ->relationship('categorie', 'nom')
                                 ->searchable()
                                 ->preload()
@@ -66,7 +72,7 @@ class EquipementForm
                                     TextInput::make('nom')
                                         ->label('Nom du Catégorie')
                                         ->maxLength(255)
-                                        ->unique(ignoreRecord: true)
+                                        ->unique(CategorieEquipement::class, 'nom')
                                         ->required(),
                                     TextInput::make('code')
                                         ->label('Code du Catégorie')
@@ -74,14 +80,16 @@ class EquipementForm
                                         ->required()
                                         ->maxLength(5)
                                         ->alphaDash()
-                                        ->unique(ignoreRecord: true)
+                                        ->unique(CategorieEquipement::class, 'code')
                                         ->dehydrateStateUsing(fn (?string $state) => strtoupper(trim((string) $state))),
                                     TextInput::make('numero_compte')
                                         ->label('Numéro de compte (SCF)')
                                         ->numeric()
                                         ->minLength(3)
                                         ->required(),
-                                ]),
+                                ])
+                                ->createOptionModalHeading('Nouvelle catégorie')
+                                ->helperText(fn (string $operation) => $operation === 'edit' ? "Non modifiable après l'ajout" : null),
                             TextInput::make('marque')
                                 ->label('Marque')
                                 ->placeholder('Ex. Dell, HP, Homely, etc.')
@@ -105,28 +113,27 @@ class EquipementForm
                             Select::make('etat')
                                 ->label('État physique')
                                 ->options(Equipement::ETATS)
-                                ->default('bon')
-                                ->required()
+                                ->default('neuf')
+                                ->disabled()
+                                ->dehydrated(false)
                                 ->native(false),
+                            
                             Select::make('statut')
                                 ->label('Statut')
-                                ->options(fn (?Model $record) => $record?->statut === 'affecte'
-                                    ? Equipement::STATUTS
-                                    : Arr::except(Equipement::STATUTS, ['affecte']))
+                                ->options(Equipement::STATUTS)
                                 ->default('en_stock')
-                                ->required()
-                                ->native(false)
-                                // un bien affecté change de statut via l'action « Restituer »
-                                ->disabled(fn (?Model $record) => $record?->statut === 'affecte')
-                                ->helperText('« Affecté » est géré par les actions Affecter / Restituer'),
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->native(false),
 
                             Select::make('emplacement_id')
                                 ->label('Emplacement')
+                                ->disabled(fn (string $operation) => $operation === 'edit')
+                                ->dehydrated(fn (string $operation) => $operation === 'create')
                                 ->relationship('emplacement', 'nom')
                                 ->getOptionLabelFromRecordUsing(fn (Emplacement $record) => $record->chemin_complet)
                                 ->searchable()
                                 ->preload()
-                                ->columnSpanFull()
                                 ->required()
                                 ->createOptionForm([
                                     TextInput::make('nom')
@@ -152,8 +159,12 @@ class EquipementForm
                                         ->searchable()
                                         ->preload()
                                         ->columnSpanFull(),
-                                ]),
+                                ])
+                                ->createOptionModalHeading('Nouvel emplacement')
+                                ->helperText(fn (string $operation) => $operation === 'create' ? "Choisissez l'emplacement du stock" : null)
+                                ->columnSpanFull(),
                         ]),
+
                     Tabs\Tab::make('Acquisition')
                         ->icon('heroicon-o-shopping-cart')
                         ->columns(2)
