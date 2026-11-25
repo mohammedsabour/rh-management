@@ -4,13 +4,19 @@ namespace App\Filament\Resources\Equipements\Pages;
 
 use App\Filament\Resources\Equipements\EquipementResource;
 use App\Models\Emplacement;
+use App\Models\Equipement;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Support\Icons\Heroicon;
+use Filament\Schemas\Components\Tabs\Tab;
+
 class ListEquipements extends ListRecords
 {
+    use ExposesTableToWidgets;
+    
     protected static string $resource = EquipementResource::class;
 
     protected function getHeaderActions(): array
@@ -46,6 +52,30 @@ class ListEquipements extends ListRecords
                     $livewire->js('window.open(' . json_encode($url) . ", '_blank')");
                 }),
             CreateAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return EquipementResource::getWidgets();
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            null => Tab::make('Tout')
+                ->badge(static fn (): int => Equipement::query()->count())
+                ->lazyLoadedBadge(),
+            'En_service' => Tab::make('En service')
+                ->badge(static fn (): int => Equipement::query()->where('statut', 'affecte')->count())
+                ->badgeColor('success')
+                ->lazyLoadedBadge()
+                ->modifyQueryUsing(fn ($query) => $query->where('statut', 'affecte')),
+            'En_Stock' => Tab::make('En Stock')
+                ->badge(static fn (): int => Equipement::query()->where('statut', 'en_stock')->count())
+                ->badgeColor('gray')
+                ->lazyLoadedBadge()
+                ->query(fn ($query) => $query->where('statut', 'en_stock')),
         ];
     }
 }

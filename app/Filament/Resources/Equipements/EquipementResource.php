@@ -6,6 +6,7 @@ use App\Filament\Resources\Equipements\Pages\CreateEquipement;
 use App\Filament\Resources\Equipements\Pages\EditEquipement;
 use App\Filament\Resources\Equipements\Pages\ListEquipements;
 use App\Filament\Resources\Equipements\Pages\ViewEquipement;
+use App\Filament\Resources\Equipements\Widgets\EquipementsStats;
 use App\Filament\Resources\Equipements\RelationManagers\AffectationsRelationManager;
 use App\Filament\Resources\Equipements\Schemas\EquipementForm;
 use App\Filament\Resources\Equipements\Schemas\EquipementInfolist;
@@ -60,6 +61,13 @@ class EquipementResource extends Resource
     {
         return [
             AffectationsRelationManager::class,
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            EquipementsStats::class,
         ];
     }
 

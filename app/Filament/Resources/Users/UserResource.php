@@ -18,6 +18,7 @@ use Filament\Tables\Table;
 use UnitEnum;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\Schemas\UserInfolist;
+use App\Filament\Resources\Users\Widgets\EmployeeStats;
 
 class UserResource extends Resource
 {
@@ -49,6 +50,13 @@ class UserResource extends Resource
     {
         return [
             //
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            EmployeeStats::class,
         ];
     }
 
