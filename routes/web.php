@@ -5,6 +5,8 @@ use App\Http\Controllers\InventaireParEmplacementController;
 use App\Http\Controllers\EtiquetteController;
 use App\Http\Controllers\InventaireComptableController;
 use App\Http\Controllers\EmployeesAttestationController;
+use App\Http\Controllers\PvCommissionController;
+use App\Http\Controllers\PvFinalController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,3 +20,7 @@ Route::middleware('auth')->get('/inventaire/inventaire-comptable', InventaireCom
     ->name('inventaire.comptable');
 Route::middleware('auth')->get('/Employe/{user}/attestation', EmployeesAttestationController::class)
     ->name('employee.attestation.download');
+Route::get('/recolement/commissions/{commission}/pv', PvCommissionController::class)
+    ->name('recolement.pv-commission');
+Route::get('/recolement/{inventaire}/pv-final', PvFinalController::class)
+    ->name('recolement.pv-final');
